@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 import DefaultTemplate from './templates/DefaultTemplate';
 import MinimalTemplate from './templates/MinimalTemplate';
 import CardTemplate from './templates/CardTemplate';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient('https://your-supabase-url.supabase.co', 'your-public-anon-key');
 
 const TEMPLATES = {
   'default': DefaultTemplate,
@@ -70,26 +74,22 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     setError('');
 
     try {
-      const response = await fetch('https://your-supabase-url.functions.supabase.co/add-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use Supabase client to invoke the edge function
+      const { data, error } = await supabase.functions.invoke('add-feedback', {
+        body: {
           projectId,
           userName: formData.name,
           userEmail: formData.email,
           message: formData.message,
           rating,
-          responseType: formData.responseType
-        })
+          responseType: formData.responseType,
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit feedback');
+      if (error) {
+        throw new Error(error.message || 'Failed to submit feedback');
       }
 
-      const data = await response.json();
       setStep('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
