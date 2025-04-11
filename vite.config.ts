@@ -2,6 +2,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { resolve } from 'path';
 import rollupNodePolyFill from "rollup-plugin-node-polyfills";
 import inject from "@rollup/plugin-inject";
 
@@ -19,9 +20,9 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: "./src/index.jsx",
-      name: "widget",
-      fileName: (format) => `widget.${format}.js`,
+      entry: resolve(__dirname, 'src/embed.jsx'),
+      name: 'OrmaFeedbackWidget',
+      fileName: (format) => `feedback-widget.${format}.js`,
     },
     target: "esnext",
     rollupOptions: {
