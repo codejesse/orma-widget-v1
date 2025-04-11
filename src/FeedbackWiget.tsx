@@ -6,7 +6,7 @@ import CardTemplate from './templates/CardTemplate';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
-const supabase = createClient('https://your-supabase-url.supabase.co', 'your-public-anon-key');
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 const TEMPLATES = {
   'default': DefaultTemplate,
@@ -75,7 +75,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
     try {
       // Use Supabase client to invoke the edge function
-      const { data, error } = await supabase.functions.invoke('add-feedback', {
+      const { error } = await supabase.functions.invoke('add-feedback', {
         body: {
           projectId,
           userName: formData.name,
