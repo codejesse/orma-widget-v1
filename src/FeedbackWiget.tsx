@@ -3,14 +3,10 @@ import React, { useState, useEffect } from "react";
 import DefaultTemplate from "./templates/DefaultTemplate";
 import MinimalTemplate from "./templates/MinimalTemplate";
 import CardTemplate from "./templates/CardTemplate";
-import { createClient } from "@supabase/supabase-js";
+import supabase from "./supabaseClient";
 
 // Initialize Supabase client
 // const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
-const supabase = createClient(
-  "https://wuddowyeklkwhukozrgh.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1ZGRvd3lla2xrd2h1a296cmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxMzI0NDYsImV4cCI6MjA0NDcwODQ0Nn0._3qpVEKrKB3wg96nXKbjmf25jQepgdIdZzpapDUucbU"
-);
 
 const TEMPLATES = {
   default: DefaultTemplate,
@@ -80,7 +76,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
     try {
       // Use Supabase client to invoke the edge function
-      const { error } = await supabase.functions.invoke("add-feedback", {
+      const { data: returnedData, error } = await supabase.rpc("add-feedback", {
         body: {
           projectId,
           userName: formData.name,
@@ -94,7 +90,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       if (error) {
         throw new Error(error.message || "Failed to submit feedback");
       }
-
+      console.log(returnedData);
       setStep("success");
     } catch (err) {
       setError(
