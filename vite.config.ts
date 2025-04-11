@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import rollupPolyfillNode from 'rollup-plugin-polyfill-node';
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [react()],
@@ -24,8 +24,8 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
         },
       },
-      external: ['react', 'react-dom'],
-      plugins: [rollupPolyfillNode()],
+      external: ['react', 'react-dom'], // Ensure React is external
+      plugins: [rollupNodePolyFill],
     },
   },
 });
