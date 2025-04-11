@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/embed.js'),
+      entry: resolve(__dirname, 'src/embed.jsx'),
       name: 'OrmaFeedbackWidget',
       fileName: (format) => `feedback-widget.${format}.js`
     },
