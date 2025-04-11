@@ -50,6 +50,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     } else if (TEMPLATES[template]) {
       setSelectedTemplate(TEMPLATES[template]);
     } else {
+      console.error(`Invalid template: ${template}`);
       setSelectedTemplate(TEMPLATES["default"]);
     }
   }, [template, customTemplate]);
@@ -75,7 +76,6 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
     setError("");
 
     try {
-      // Use Supabase client to invoke the edge function
       const { data: returnedData, error } = await supabase.rpc("add-feedback", {
         body: {
           projectId,
@@ -117,7 +117,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
   // Render the selected template
   if (!selectedTemplate) {
-    return null; // Waiting for template to load
+    return null; // Prevent rendering until template is set
   }
 
   const TemplateComponent = selectedTemplate;
