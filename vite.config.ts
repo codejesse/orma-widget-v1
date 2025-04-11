@@ -3,12 +3,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import inject from '@rollup/plugin-inject';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      process: 'process/browser',
+      process: 'process/browser', // Alias for process
     },
   },
   build: {
@@ -25,7 +26,12 @@ export default defineConfig({
         },
       },
       external: ['react', 'react-dom'], // Ensure React is external
-      plugins: [rollupNodePolyFill],
+      plugins: [
+        rollupNodePolyFill(), // Polyfill Node.js modules
+        inject({
+          process: 'process/browser', // Inject process polyfill
+        }),
+      ],
     },
   },
 });
