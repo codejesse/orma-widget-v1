@@ -27,7 +27,7 @@ export default defineConfig({
       },
       external: ['react', 'react-dom'], // Ensure React is external
       plugins: [
-        rollupNodePolyFill(), // Polyfill Node.js modules
+        rollupNodePolyFill, // Polyfill Node.js modules
         inject({
           process: 'process/browser', // Inject process polyfill
         }),
