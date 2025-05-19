@@ -2,10 +2,15 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-const external = process.env.BUILD === "es" ? ["react", "react-dom"] : [];
+const isES = process.env.BUILD === "es";
+const external = isES ? ["react", "react-dom"] : [];
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env": {}, // prevent ReferenceError for any other process.env usage
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/wrapper.ts"),
