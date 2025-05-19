@@ -8,5 +8,4 @@ module.exports = {
   corePlugins: {
     preflight: false,
   },
-  important: "#feedback-widget-root",
 };

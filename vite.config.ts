@@ -2,25 +2,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// https://vitejs.dev/config/
+const external = process.env.BUILD === "es" ? ["react", "react-dom"] : [];
+
 export default defineConfig({
-  define: {
-    "process.env": {
-      NODE_ENV: "production",
-    },
-  },
   plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   build: {
     lib: {
-      entry: "./src/embed.jsx",
-      name: 'OrmaFeedbackWidget',
-      fileName: (format) => `feedback-widget.${format}.js`,
+      entry: path.resolve(__dirname, "src/wrapper.ts"),
+      name: "OrmaWidget",
+      fileName: (format) => `orma-widget.${format}.js`,
+      formats: ["umd", "es"],
     },
-    target: "esnext",
+    rollupOptions: {
+      external,
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+        },
+      },
+    },
+    outDir: "dist",
+    emptyOutDir: true,
   },
 });
