@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { OrmaWidget } from "./components/OrmaWidget";
-import type { FC } from "react";
+// import type { FC } from "react";
 
 // Extend the window interface to include our custom properties
 declare global {
