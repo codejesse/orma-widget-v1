@@ -79,11 +79,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
       const { data: returnedData, error } = await supabase.rpc("add-feedback", {
         body: {
           projectId,
-          userName: formData.name,
-          userEmail: formData.email,
-          message: formData.message,
+          p_user_name: formData.name,
+          p_user_email: formData.email,
+          p_message: formData.message,
           rating,
-          responseType: formData.responseType,
+          p_response_type: formData.responseType,
         },
       });
 
@@ -117,7 +117,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 
   // Render the selected template
   if (!selectedTemplate) {
-    return null; // Prevent rendering until template is set
+    return null;
   }
 
   const TemplateComponent = selectedTemplate;
