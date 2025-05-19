@@ -15,7 +15,7 @@ export const submitFeedback = async ({
   type: string;
   projectId?: string;
 }) => {
-  const { error } = await supabase.rpc("submit_feedback", {
+  const { error } = await supabase.rpc("add_feedback", {
     p_user_name: name,
     p_user_email: email,
     p_rating: rating,
