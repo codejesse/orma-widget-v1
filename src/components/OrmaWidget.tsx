@@ -69,6 +69,7 @@ export const OrmaWidget: React.FC<Props> = ({
       </div>
 
       {step === "type" ? (
+        // Feedback type selection screen
         <div className="p-4">
           <h3 className="text-lg font-medium mb-4">Choose feedback option</h3>
           <div className="space-y-3">
@@ -87,11 +88,19 @@ export const OrmaWidget: React.FC<Props> = ({
             ))}
           </div>
           <p className="text-xs text-center text-gray-400 mt-6">
-            Powered by <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+            Powered by{" "}
+            <span className="text-purple-600 font-semibold">〰️ ORMA</span>
           </p>
         </div>
       ) : (
+        // Form screen with back button
         <div className="p-4 space-y-3">
+          <button
+            className="text-sm text-purple-600 hover:underline mb-2"
+            onClick={() => setStep("type")}
+          >
+            ← Back
+          </button>
           <div className="flex gap-2">
             <div className="flex flex-col w-1/2">
               <label className="text-sm mb-1">Name</label>
@@ -144,7 +153,8 @@ export const OrmaWidget: React.FC<Props> = ({
             {loading ? "Submitting..." : "Submit"}
           </button>
           <p className="text-xs text-center text-gray-400 mt-2">
-            Powered by <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+            Powered by{" "}
+            <span className="text-purple-600 font-semibold">〰️ ORMA</span>
           </p>
         </div>
       )}
