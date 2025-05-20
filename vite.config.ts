@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
@@ -7,7 +8,7 @@ const isES = process.env.BUILD === "es";
 const external = isES ? ["react", "react-dom"] : [];
 
 export default defineConfig({
-  plugins: [react(), cssInjectedByJsPlugin()],
+  plugins: [react(), cssInjectedByJsPlugin(), tailwindcss()],
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
     "process.env": {}, // prevent ReferenceError for any other process.env usage
