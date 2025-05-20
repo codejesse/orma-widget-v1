@@ -63,7 +63,7 @@ export const OrmaWidget: React.FC<Props> = ({
         <div>
           <h2 className="text-lg font-semibold">Acme Inc.</h2>
         </div>
-        <button onClick={onClose} aria-label="Close">
+        <button className="cursor-pointer" onClick={onClose} aria-label="Close">
           <span className="text-xl">✕</span>
         </button>
       </div>
@@ -80,7 +80,7 @@ export const OrmaWidget: React.FC<Props> = ({
                   setType(ft.value);
                   setStep("form");
                 }}
-                className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition"
+                className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition cursor-pointer"
               >
                 <span className="text-xl">{ft.emoji}</span>
                 <span className="text-sm font-medium">{ft.label}</span>
@@ -148,7 +148,7 @@ export const OrmaWidget: React.FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
+            className="w-full cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
           >
             {loading ? "Submitting..." : "Submit"}
           </button>
