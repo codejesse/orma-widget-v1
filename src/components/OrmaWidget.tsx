@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { submitFeedback } from "./../rpc/submitFeedback";
 
-const FEEDBACK_TYPES = ["Bug", "Suggestion", "Improvement", "Other"];
+const FEEDBACK_TYPES = [
+  { label: "Report an issue", value: "Bug", emoji: "⚠️" },
+  { label: "Suggest to us", value: "Suggestion", emoji: "💡" },
+  { label: "Other", value: "Other", emoji: "⋯" },
+];
 
 type Props = {
   position?: "bottom-right" | "bottom-left";
@@ -14,7 +18,8 @@ export const OrmaWidget: React.FC<Props> = ({
   projectId,
   onClose,
 }) => {
-  const [type, setType] = useState(FEEDBACK_TYPES[0]);
+  const [step, setStep] = useState<"type" | "form">("type");
+  const [type, setType] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [rating, setRating] = useState(0);
@@ -34,6 +39,7 @@ export const OrmaWidget: React.FC<Props> = ({
         projectId,
       });
       alert("Thanks for your feedback!");
+      setStep("type");
       setName("");
       setEmail("");
       setRating(0);
@@ -48,84 +54,100 @@ export const OrmaWidget: React.FC<Props> = ({
 
   return (
     <div
-      className={`fixed z-50 p-4 bg-white shadow-lg rounded-xl w-80 ${
+      className={`fixed z-50 bg-white rounded-2xl shadow-2xl overflow-hidden w-[360px] ${
         position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4"
       }`}
     >
-      {/* Header with title and close button */}
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold">Send Feedback</h3>
-        <button 
-          onClick={onClose} 
-          className="text-gray-500 hover:text-gray-700 focus:outline-none"
-          aria-label="Close"
-        >
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth="2" 
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 flex justify-between items-start">
+        <div>
+          <h2 className="text-lg font-semibold">Acme Inc.</h2>
+        </div>
+        <button onClick={onClose} aria-label="Close">
+          <span className="text-xl">✕</span>
         </button>
       </div>
 
-      <input
-        className="w-full border mb-2 p-2"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        className="w-full border mb-2 p-2"
-        placeholder="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <select
-        className="w-full border mb-2 p-2"
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-      >
-        {FEEDBACK_TYPES.map((ft) => (
-          <option key={ft}>{ft}</option>
-        ))}
-      </select>
-      <textarea
-        className="w-full border mb-2 p-2"
-        rows={4}
-        placeholder="Your feedback..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      <div className="flex mb-2">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            className={`cursor-pointer text-xl ${
-              star <= rating ? "text-yellow-400" : "text-gray-300"
-            }`}
-            onClick={() => setRating(star)}
+      {step === "type" ? (
+        <div className="p-4">
+          <h3 className="text-lg font-medium mb-4">Choose feedback option</h3>
+          <div className="space-y-3">
+            {FEEDBACK_TYPES.map((ft) => (
+              <button
+                key={ft.value}
+                onClick={() => {
+                  setType(ft.value);
+                  setStep("form");
+                }}
+                className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition"
+              >
+                <span className="text-xl">{ft.emoji}</span>
+                <span className="text-sm font-medium">{ft.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-center text-gray-400 mt-6">
+            Powered by <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+          </p>
+        </div>
+      ) : (
+        <div className="p-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="flex flex-col w-1/2">
+              <label className="text-sm mb-1">Name</label>
+              <input
+                className="border rounded-md p-2 text-sm"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col w-1/2">
+              <label className="text-sm mb-1">Email</label>
+              <input
+                type="email"
+                className="border rounded-md p-2 text-sm"
+                placeholder="johndoe@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm mb-1 block">Feedback</label>
+            <textarea
+              className="w-full border rounded-md p-2 text-sm"
+              rows={3}
+              placeholder="Why did you select your choice and what do you think about our product/services?"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-center gap-1 text-xl text-gray-400">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`cursor-pointer ${
+                  star <= rating ? "text-yellow-400" : ""
+                }`}
+                onClick={() => setRating(star)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
           >
-            ★
-          </span>
-        ))}
-      </div>
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-blue-600 text-white p-2 w-full rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? "Submitting..." : "Submit Feedback"}
-      </button>
+            {loading ? "Submitting..." : "Submit"}
+          </button>
+          <p className="text-xs text-center text-gray-400 mt-2">
+            Powered by <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 };
