@@ -96,7 +96,7 @@ export const OrmaWidget: React.FC<Props> = ({
         // Form screen with back button
         <div className="p-4 space-y-3">
           <button
-            className="text-sm text-purple-600 hover:underline mb-2"
+            className="text-sm text-purple-600 mb-2"
             onClick={() => setStep("type")}
           >
             ← Back
