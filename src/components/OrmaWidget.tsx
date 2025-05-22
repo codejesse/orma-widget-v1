@@ -40,7 +40,7 @@ export const OrmaWidget: React.FC<Props> = ({
         projectId,
       });
       setStep("thankyou");
-      setStep("type");
+    //   setStep("type");
       setName("");
       setEmail("");
       setRating(0);
