@@ -19,7 +19,7 @@ export const OrmaWidget: React.FC<Props> = ({
   projectId,
   onClose,
 }) => {
-  const [step, setStep] = useState<"type" | "form">("type");
+  const [step, setStep] = useState<"type" | "form" | "thankyou">("type");
   const [type, setType] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export const OrmaWidget: React.FC<Props> = ({
         type,
         projectId,
       });
-      alert("Thanks for your feedback!");
+      setStep("thankyou");
       setStep("type");
       setName("");
       setEmail("");
@@ -158,7 +158,7 @@ export const OrmaWidget: React.FC<Props> = ({
             <span className="text-purple-600 font-semibold">〰️ ORMA</span>
           </p>
         </div>
-      ): (
+      ) : (
         <ThankYouScreen onClose={onClose} />
       )}
     </div>
