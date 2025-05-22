@@ -7,30 +7,6 @@ type Props = {
 const ThankYouScreen: React.FC<Props> = ({ onClose }) => {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-8 text-center min-h-[180px]">
-      {/* Decorative purple gradient circle in the top-right */}
-      <div
-        className="absolute top-0 right-0 w-1/2 h-full pointer-events-none"
-        style={{ zIndex: 0 }}
-      >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 300 300"
-          className="absolute top-0 right-0"
-          style={{ minWidth: 180, minHeight: 180 }}
-          aria-hidden="true"
-        >
-          <defs>
-            <radialGradient id="purpleGradient" cx="70%" cy="30%" r="80%">
-              <stop offset="0%" stopColor="#e0c3fc" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#8ec5fc" stopOpacity="0.7" />
-              <stop offset="80%" stopColor="#a18cd1" stopOpacity="1" />
-              <stop offset="100%" stopColor="#fbc2eb" stopOpacity="0.8" />
-            </radialGradient>
-          </defs>
-          <circle cx="150" cy="150" r="150" fill="url(#purpleGradient)" />
-        </svg>
-      </div>
 
       {/* Close button */}
       <button
