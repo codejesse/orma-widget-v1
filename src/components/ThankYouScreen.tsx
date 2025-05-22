@@ -35,7 +35,7 @@ const ThankYouScreen: React.FC<Props> = ({ onClose }) => {
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 bg-white/80 hover:bg-white rounded-full p-1 shadow z-10"
+        className="absolute top-2 right-4 bg-white/80 hover:bg-white rounded-full p-1 shadow z-10"
         aria-label="Close"
         style={{ backdropFilter: "blur(2px)" }}
       >
