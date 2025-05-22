@@ -7,17 +7,16 @@ type Props = {
 const ThankYouScreen: React.FC<Props> = ({ onClose }) => {
   return (
     <div className="p-6 text-center relative">
-      {/* Close Button */}
-      <div className="absolute top-2 right-2">
-        <button
-          onClick={onClose}
-          className="bg-white rounded-full p-1 shadow"
-          aria-label="Close"
-        >
-          <svg
-            className="w-5 h-5 text-gray-600"
-            fill="none"
-            stroke="currentColor"
+      <h2 className="text-lg font-bold text-gray-900 mb-2">
+        Thanks for your feedback!
+      </h2>
+      <p className="text-sm text-gray-600">
+        We appreciate your feedback and always love to use your feedback to serve you better.
+      </p>
+    </div>
+  );
+};
+
             viewBox="0 0 24 24"
           >
             <path
