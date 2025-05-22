@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { submitFeedback } from "./../rpc/submitFeedback";
+import ThankYouScreen from "./ThankYouScreen";
 
 const FEEDBACK_TYPES = [
   { label: "Report an issue", value: "Bug", emoji: "⚠️" },
@@ -92,7 +93,7 @@ export const OrmaWidget: React.FC<Props> = ({
             <span className="text-purple-600 font-semibold">〰️ ORMA</span>
           </p>
         </div>
-      ) : (
+      ) : step === "form" ? (
         // Form screen with back button
         <div className="p-4 space-y-3">
           <button
@@ -157,6 +158,8 @@ export const OrmaWidget: React.FC<Props> = ({
             <span className="text-purple-600 font-semibold">〰️ ORMA</span>
           </p>
         </div>
+      ): (
+        <ThankYouScreen onClose={onClose} />
       )}
     </div>
   );
