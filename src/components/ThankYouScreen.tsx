@@ -34,7 +34,7 @@ const ThankYouScreen: React.FC<Props> = ({ onClose }) => {
 
       {/* Main content */}
       <h2 className="text-2xl font-bold text-gray-900 mb-3 relative z-10">
-        Thanks for your feedback! 🎉
+        Thank you for your feedback! 🎉
       </h2>
       <p className="text-lg text-gray-700 relative z-10">
         We appreciate your feedback and always love to use your feedback to serve
