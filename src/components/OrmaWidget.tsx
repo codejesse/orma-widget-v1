@@ -3,8 +3,8 @@ import { submitFeedback } from "./../rpc/submitFeedback";
 import ThankYouScreen from "./ThankYouScreen";
 
 const FEEDBACK_TYPES = [
-  { label: "Report an issue", value: "Bug", emoji: "⚠️" },
-  { label: "Suggest to us", value: "Suggestion", emoji: "💡" },
+  { label: "Report an issue", value: "Report and issue", emoji: "⚠️" },
+  { label: "Suggest to us", value: "Suggest to us", emoji: "💡" },
   { label: "Other", value: "Other", emoji: "⋯" },
 ];
 
