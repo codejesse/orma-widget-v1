@@ -151,7 +151,7 @@ export const OrmaWidget: React.FC<Props> = ({
                 <img 
                   src={companyIconUrl} 
                   alt="Company Logo" 
-                  className="w-full h-fit object-cover"
+                  className="w-full h-10 object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
