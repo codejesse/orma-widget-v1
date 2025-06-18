@@ -156,9 +156,9 @@ export const OrmaWidget: React.FC<Props> = ({
                     src={companyIconUrl || "/placeholder.svg"}
                     alt="Company Logo"
                     className="max-w-full max-h-full object-contain"
-                    style={{
-                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
-                    }}
+                    // style={{
+                    //   filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
+                    // }}
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = "none"
                     }}
