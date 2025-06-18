@@ -151,13 +151,13 @@ export const OrmaWidget: React.FC<Props> = ({
                 <img 
                   src={companyIconUrl} 
                   alt="Company Logo" 
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-full h-8 object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               )}
-              <h2 className="text-lg font-semibold">Acme Inc.</h2>
+              <h2 className="text-lg font-semibold">Acme Inc.</h2> {/* Replace with dynamic company name dynamically */}
             </div>
             <button className="cursor-pointer" onClick={onClose} aria-label="Close">
               <span className="text-xl">✕</span>
@@ -175,7 +175,6 @@ export const OrmaWidget: React.FC<Props> = ({
                     setStep("form");
                   }}
                   className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition cursor-pointer"
-                  style={{ borderLeft: `4px solid ${accent}` }}
                 >
                   <span className="text-xl">{ft.emoji}</span>
                   <span className="text-sm font-medium">{ft.label}</span>
