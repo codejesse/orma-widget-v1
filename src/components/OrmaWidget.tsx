@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { submitFeedback } from "./../rpc/submitFeedback";
 import ThankYouScreen from "./ThankYouScreen";
 
@@ -8,15 +8,53 @@ const FEEDBACK_TYPES = [
   { label: "Other", value: "Other", emoji: "⋯" },
 ];
 
+// Predefined color themes
+const COLOR_THEMES = {
+  default: {
+    primary: "from-purple-500 to-pink-500",
+    accent: "purple-600",
+    light: "purple-50",
+    lightHover: "purple-100",
+  },
+  blue: {
+    primary: "from-blue-500 to-cyan-500",
+    accent: "blue-600",
+    light: "blue-50",
+    lightHover: "blue-100",
+  },
+  green: {
+    primary: "from-green-500 to-emerald-500",
+    accent: "green-600",
+    light: "green-50",
+    lightHover: "green-100",
+  },
+  orange: {
+    primary: "from-orange-500 to-red-500",
+    accent: "orange-600",
+    light: "orange-50",
+    lightHover: "orange-100",
+  },
+  indigo: {
+    primary: "from-indigo-500 to-purple-500",
+    accent: "indigo-600",
+    light: "indigo-50",
+    lightHover: "indigo-100",
+  },
+};
+
 type Props = {
   position?: "bottom-right" | "bottom-left";
   projectId?: string;
+  companyIconUrl?: string;
+  colorTheme?: string;
   onClose?: () => void;
 };
 
 export const OrmaWidget: React.FC<Props> = ({
   position = "bottom-right",
   projectId,
+  companyIconUrl,
+  colorTheme = "default",
   onClose,
 }) => {
   const [step, setStep] = useState<"type" | "form" | "thankyou">("type");
@@ -26,6 +64,11 @@ export const OrmaWidget: React.FC<Props> = ({
   const [rating, setRating] = useState(0);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Get the color theme or fall back to default
+  const theme = useMemo(() => {
+    return COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default;
+  }, [colorTheme]);
 
   const handleSubmit = async () => {
     if (!message.trim()) return;
@@ -40,7 +83,6 @@ export const OrmaWidget: React.FC<Props> = ({
         projectId,
       });
       setStep("thankyou");
-    //   setStep("type");
       setName("");
       setEmail("");
       setRating(0);
@@ -62,8 +104,19 @@ export const OrmaWidget: React.FC<Props> = ({
       {step === "type" ? (
         <>
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 flex justify-between items-start">
-            <div>
+          <div className={`bg-gradient-to-r ${theme.primary} text-white p-4 flex justify-between items-start`}>
+            <div className="flex items-center gap-3">
+              {companyIconUrl && (
+                <img 
+                  src={companyIconUrl} 
+                  alt="Company Logo" 
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    // Hide the image if it fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
               <h2 className="text-lg font-semibold">Acme Inc.</h2>
             </div>
             <button className="cursor-pointer" onClick={onClose} aria-label="Close">
@@ -81,7 +134,7 @@ export const OrmaWidget: React.FC<Props> = ({
                     setType(ft.value);
                     setStep("form");
                   }}
-                  className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition cursor-pointer"
+                  className={`w-full flex items-center gap-3 p-3 bg-${theme.light} hover:bg-${theme.lightHover} rounded-xl transition cursor-pointer`}
                 >
                   <span className="text-xl">{ft.emoji}</span>
                   <span className="text-sm font-medium">{ft.label}</span>
@@ -90,15 +143,25 @@ export const OrmaWidget: React.FC<Props> = ({
             </div>
             <p className="text-xs text-center text-gray-400 mt-6">
               Powered by{" "}
-              <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+              <span className={`text-${theme.accent} font-semibold`}>〰️ ORMA</span>
             </p>
           </div>
         </>
       ) : step === "form" ? (
         <>
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 flex justify-between items-start">
-            <div>
+          <div className={`bg-gradient-to-r ${theme.primary} text-white p-4 flex justify-between items-start`}>
+            <div className="flex items-center gap-3">
+              {companyIconUrl && (
+                <img 
+                  src={companyIconUrl} 
+                  alt="Company Logo" 
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
               <h2 className="text-lg font-semibold">Acme Inc.</h2>
             </div>
             <button className="cursor-pointer" onClick={onClose} aria-label="Close">
@@ -108,7 +171,7 @@ export const OrmaWidget: React.FC<Props> = ({
           {/* Form screen with back button */}
           <div className="p-4 space-y-3">
             <button
-              className="text-sm text-purple-600 mb-2 cursor-pointer"
+              className={`text-sm text-${theme.accent} mb-2 cursor-pointer`}
               onClick={() => setStep("type")}
             >
               ← Back
@@ -160,13 +223,13 @@ export const OrmaWidget: React.FC<Props> = ({
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
+              className={`w-full cursor-pointer bg-gradient-to-r ${theme.primary} text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50`}
             >
               {loading ? "Submitting..." : "Submit"}
             </button>
             <p className="text-xs text-center text-gray-400 mt-2">
               Powered by{" "}
-              <span className="text-purple-600 font-semibold">〰️ ORMA</span>
+              <span className={`text-${theme.accent} font-semibold`}>〰️ ORMA</span>
             </p>
           </div>
         </>
