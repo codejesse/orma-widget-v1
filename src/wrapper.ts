@@ -17,6 +17,7 @@ interface WidgetConfig {
   position?: "bottom-right" | "bottom-left";
   companyIconUrl?: string;
   colorTheme?: string;
+  primaryColor?: string; // <-- NEW
 }
 
 const currentScript = document.currentScript as HTMLScriptElement | null;
@@ -24,13 +25,14 @@ const currentScript = document.currentScript as HTMLScriptElement | null;
 // Extract all parameters from the URL
 const getWidgetConfig = (): WidgetConfig => {
   if (!currentScript) return {};
-  
+
   const url = new URL(currentScript.src);
   return {
     projectId: url.searchParams.get("pid") ?? undefined,
     position: (url.searchParams.get("position") as "bottom-right" | "bottom-left") ?? "bottom-right",
     companyIconUrl: url.searchParams.get("company-icon-url") ?? undefined,
     colorTheme: url.searchParams.get("color-theme") ?? undefined,
+    primaryColor: url.searchParams.get("primary-color") ?? undefined, // <-- NEW
   };
 };
 
@@ -50,11 +52,11 @@ const toggleWidget = (customPosition?: "bottom-right" | "bottom-left") => {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = ReactDOM.createRoot(container);
-  
+
   // Store references for later cleanup
   window.ormaWidgetContainer = container;
   window.ormaWidgetRoot = root;
-  
+
   // Function to close the widget
   const closeWidget = () => {
     if (window.ormaWidgetContainer && window.ormaWidgetRoot) {
@@ -64,17 +66,18 @@ const toggleWidget = (customPosition?: "bottom-right" | "bottom-left") => {
       window.ormaWidgetRoot = undefined;
     }
   };
-  
+
   // Use custom position if provided, otherwise fall back to URL config, then default
   const finalPosition = customPosition || widgetConfig.position || "bottom-right";
-  
+
   // Render the widget with all customization options
-  root.render(React.createElement(OrmaWidget, { 
-    projectId: widgetConfig.projectId, 
+  root.render(React.createElement(OrmaWidget, {
+    projectId: widgetConfig.projectId,
     position: finalPosition,
     companyIconUrl: widgetConfig.companyIconUrl,
     colorTheme: widgetConfig.colorTheme,
-    onClose: closeWidget 
+    primaryColor: widgetConfig.primaryColor, // <-- NEW
+    onClose: closeWidget
   }));
 };
 
@@ -82,7 +85,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-feedback-widget]").forEach((el) => {
     // Extract position from data attribute if available (this overrides URL parameter)
     const dataPosition = el.getAttribute("data-position") as "bottom-right" | "bottom-left" | undefined;
-    
+
     el.addEventListener("click", (e) => {
       e.preventDefault();
       toggleWidget(dataPosition);
