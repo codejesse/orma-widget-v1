@@ -51,10 +51,31 @@ type Props = {
   onClose?: () => void;
 };
 
+// Helper to check if a string is a valid hex or rgb/hsl color
+function isValidColor(str: string | undefined): boolean {
+  if (!str) return false;
+  // Hex
+  if (/^#([A-Fa-f0-9]{3,4}){1,2}$/.test(str)) return true;
+  // rgb/rgba/hsl/hsla
+  if (/^(rgb|hsl)a?\((\s*\d+\s*,?)+\s*[\d\.]*\)$/.test(str)) return true;
+  return false;
+}
+
 // Helper to create a gradient from any color
 function makeGradient(color: string) {
-  // You can get fancier here, but this works for most hex/rgb/hsl
-  return `linear-gradient(90deg, ${color} 0%, ${color}CC 70%, #fff0 100%)`;
+  // Use a transparent version of the color for the fade-out
+  // For hex, add CC for 80% opacity; for rgb/hsl, use with alpha if possible
+  if (color.startsWith("#") && (color.length === 7 || color.length === 4)) {
+    return `linear-gradient(90deg, ${color} 0%, ${color}CC 70%, #fff0 100%)`;
+  }
+  if (color.startsWith("rgb")) {
+    return `linear-gradient(90deg, ${color} 0%, ${color.replace("rgb", "rgba").replace(")", ",0.8)")} 70%, #fff0 100%)`;
+  }
+  if (color.startsWith("hsl")) {
+    return `linear-gradient(90deg, ${color} 0%, ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 70%, #fff0 100%)`;
+  }
+  // fallback
+  return `linear-gradient(90deg, ${color} 0%, #fff0 100%)`;
 }
 
 export const OrmaWidget: React.FC<Props> = ({
@@ -73,16 +94,16 @@ export const OrmaWidget: React.FC<Props> = ({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Use user color if provided, else fallback to theme
+  // Use user color if valid, else fallback to theme
   const gradient = useMemo(() => {
-    if (primaryColor) return makeGradient(primaryColor);
+    if (isValidColor(primaryColor)) return makeGradient(primaryColor!);
     // fallback to your old theme system if needed
     const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default;
     return `linear-gradient(to right, var(--tw-gradient-stops, ${theme.primary}))`;
   }, [primaryColor, colorTheme]);
 
   const accent = useMemo(() => {
-    if (primaryColor) return primaryColor;
+    if (isValidColor(primaryColor)) return primaryColor!;
     const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default;
     return `var(--tw-color, ${theme.accent})`;
   }, [primaryColor, colorTheme]);
