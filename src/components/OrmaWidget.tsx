@@ -135,38 +135,45 @@ export const OrmaWidget: React.FC<Props> = ({
 
   return (
     <div
-      className={`fixed z-50 bg-white rounded-2xl shadow-2xl overflow-hidden w-[360px] ${
-        position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4"
+      className={`fixed z-50 bg-white rounded-[32px] shadow-2xl overflow-hidden w-[380px] ${
+        position === "bottom-left" ? "bottom-6 left-6" : "bottom-6 right-6"
       }`}
+      style={{ fontFamily: "Inter, sans-serif" }}
     >
       {step === "type" ? (
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-start"
-            style={{ background: gradient }}
+            className="relative flex items-center justify-between"
+            style={{
+              height: 120,
+              background: gradient,
+              padding: "2rem 2rem 1.5rem 2rem",
+            }}
           >
-            <div className="flex items-center gap-3">
-              {companyIconUrl && (
-                <img 
-                  src={companyIconUrl} 
-                  alt="Company Logo" 
-                  className="w-full h-8 object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              )}
-              <h2 className="text-lg font-semibold">Acme Inc.</h2> {/* Replace with dynamic company name dynamically */}
-            </div>
-            <button className="cursor-pointer" onClick={onClose} aria-label="Close">
-              <span className="text-xl">✕</span>
-            </button>
+            <h2 className="text-white text-2xl font-bold leading-tight drop-shadow m-0">
+              Acme Inc.
+            </h2>
+            {companyIconUrl && (
+              <img
+                src={companyIconUrl}
+                alt="Company Logo"
+                className="w-24 h-24 object-contain"
+                style={{
+                  marginLeft: "1.5rem",
+                  flexShrink: 0,
+                  background: "#fff",
+                }}
+                onError={e => ((e.target as HTMLImageElement).style.display = "none")}
+              />
+            )}
           </div>
           {/* Feedback type selection screen */}
-          <div className="p-4">
-            <h3 className="text-lg font-medium mb-4">Choose feedback option</h3>
-            <div className="space-y-3">
+          <div className="p-8 pt-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+              Choose feedback option
+            </h3>
+            <div className="space-y-5">
               {FEEDBACK_TYPES.map((ft) => (
                 <button
                   key={ft.value}
@@ -174,16 +181,19 @@ export const OrmaWidget: React.FC<Props> = ({
                     setType(ft.value);
                     setStep("form");
                   }}
-                  className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+                  className="w-full flex items-center gap-4 px-6 py-5 bg-[#f8f5ff] hover:bg-[#f3ebff] rounded-2xl transition cursor-pointer shadow-sm"
+                  style={{ fontSize: "1.15rem", fontWeight: 500 }}
                 >
-                  <span className="text-xl">{ft.emoji}</span>
-                  <span className="text-sm font-medium">{ft.label}</span>
+                  <span className="text-3xl">{ft.emoji}</span>
+                  <span className="flex-1 text-left text-gray-900">{ft.label}</span>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-center text-gray-400 mt-6">
+            <p className="text-base text-center text-gray-400 mt-10">
               Powered by{" "}
-              <span style={{ color: accent }} className="font-semibold">〰️ ORMA</span>
+              <span className="font-semibold" style={{ color: "#7c3aed" }}>
+                // ORMA
+              </span>
             </p>
           </div>
         </>
@@ -191,25 +201,29 @@ export const OrmaWidget: React.FC<Props> = ({
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-start"
-            style={{ background: gradient }}
+            className="relative flex items-center justify-between"
+            style={{
+              height: 80,
+              background: gradient,
+              padding: "1.5rem 2rem 1.5rem 2rem",
+            }}
           >
-            <div className="flex items-center gap-3">
-              {companyIconUrl && (
-                <img 
-                  src={companyIconUrl} 
-                  alt="Company Logo" 
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              )}
-              <h2 className="text-lg font-semibold">Acme Inc.</h2>
-            </div>
-            <button className="cursor-pointer" onClick={onClose} aria-label="Close">
-              <span className="text-xl">✕</span>
-            </button>
+            <h2 className="text-white text-xl font-bold leading-tight drop-shadow m-0">
+              Acme Inc.
+            </h2>
+            {companyIconUrl && (
+              <img
+                src={companyIconUrl}
+                alt="Company Logo"
+                className="w-14 h-14 object-contain rounded-full bg-white shadow-lg border-4 border-white"
+                style={{
+                  marginLeft: "1.5rem",
+                  flexShrink: 0,
+                  background: "#fff",
+                }}
+                onError={e => ((e.target as HTMLImageElement).style.display = "none")}
+              />
+            )}
           </div>
           {/* Form screen with back button */}
           <div className="p-4 space-y-3">
