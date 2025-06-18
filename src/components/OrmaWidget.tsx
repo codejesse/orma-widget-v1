@@ -1,12 +1,15 @@
-import React, { useState, useMemo } from "react";
-import { submitFeedback } from "./../rpc/submitFeedback";
-import ThankYouScreen from "./ThankYouScreen";
+"use client"
+
+import type React from "react"
+import { useState, useMemo } from "react"
+import { submitFeedback } from "./../rpc/submitFeedback"
+import ThankYouScreen from "./ThankYouScreen"
 
 const FEEDBACK_TYPES = [
   { label: "Report an issue", value: "Report and issue", emoji: "⚠️" },
   { label: "Suggest to us", value: "Suggest to us", emoji: "💡" },
   { label: "Other", value: "Other", emoji: "⋯" },
-];
+]
 
 // Predefined color themes
 const COLOR_THEMES = {
@@ -40,25 +43,25 @@ const COLOR_THEMES = {
     light: "indigo-50",
     lightHover: "indigo-100",
   },
-};
+}
 
 type Props = {
-  position?: "bottom-right" | "bottom-left";
-  projectId?: string;
-  companyIconUrl?: string;
-  colorTheme?: string; // still supported for legacy
-  primaryColor?: string; // <-- NEW: hex/rgb/hsl
-  onClose?: () => void;
-};
+  position?: "bottom-right" | "bottom-left"
+  projectId?: string
+  companyIconUrl?: string
+  colorTheme?: string // still supported for legacy
+  primaryColor?: string // <-- NEW: hex/rgb/hsl
+  onClose?: () => void
+}
 
 // Helper to check if a string is a valid hex or rgb/hsl color
 function isValidColor(str: string | undefined): boolean {
-  if (!str) return false;
+  if (!str) return false
   // Hex
-  if (/^#([A-Fa-f0-9]{3,4}){1,2}$/.test(str)) return true;
+  if (/^#([A-Fa-f0-9]{3,4}){1,2}$/.test(str)) return true
   // rgb/rgba/hsl/hsla
-  if (/^(rgb|hsl)a?\((\s*\d+\s*,?)+\s*[\d\.]*\)$/.test(str)) return true;
-  return false;
+  if (/^(rgb|hsl)a?$$(\s*\d+\s*,?)+\s*[\d.]*$$$/.test(str)) return true
+  return false
 }
 
 // Helper to create a gradient from any color
@@ -66,16 +69,16 @@ function makeGradient(color: string) {
   // Use a transparent version of the color for the fade-out
   // For hex, add CC for 80% opacity; for rgb/hsl, use with alpha if possible
   if (color.startsWith("#") && (color.length === 7 || color.length === 4)) {
-    return `linear-gradient(90deg, ${color} 0%, ${color}CC 70%, #fff0 100%)`;
+    return `linear-gradient(90deg, ${color} 0%, ${color}CC 70%, #fff0 100%)`
   }
   if (color.startsWith("rgb")) {
-    return `linear-gradient(90deg, ${color} 0%, ${color.replace("rgb", "rgba").replace(")", ",0.8)")} 70%, #fff0 100%)`;
+    return `linear-gradient(90deg, ${color} 0%, ${color.replace("rgb", "rgba").replace(")", ",0.8)")} 70%, #fff0 100%)`
   }
   if (color.startsWith("hsl")) {
-    return `linear-gradient(90deg, ${color} 0%, ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 70%, #fff0 100%)`;
+    return `linear-gradient(90deg, ${color} 0%, ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 70%, #fff0 100%)`
   }
   // fallback
-  return `linear-gradient(90deg, ${color} 0%, #fff0 100%)`;
+  return `linear-gradient(90deg, ${color} 0%, #fff0 100%)`
 }
 
 export const OrmaWidget: React.FC<Props> = ({
@@ -86,31 +89,31 @@ export const OrmaWidget: React.FC<Props> = ({
   primaryColor,
   onClose,
 }) => {
-  const [step, setStep] = useState<"type" | "form" | "thankyou">("type");
-  const [type, setType] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"type" | "form" | "thankyou">("type")
+  const [type, setType] = useState("")
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [rating, setRating] = useState(0)
+  const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
 
   // Use user color if valid, else fallback to theme
   const gradient = useMemo(() => {
-    if (isValidColor(primaryColor)) return makeGradient(primaryColor!);
+    if (isValidColor(primaryColor)) return makeGradient(primaryColor!)
     // fallback to your old theme system if needed
-    const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default;
-    return `linear-gradient(to right, var(--tw-gradient-stops, ${theme.primary}))`;
-  }, [primaryColor, colorTheme]);
+    const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default
+    return `linear-gradient(to right, var(--tw-gradient-stops, ${theme.primary}))`
+  }, [primaryColor, colorTheme])
 
   const accent = useMemo(() => {
-    if (isValidColor(primaryColor)) return primaryColor!;
-    const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default;
-    return `var(--tw-color, ${theme.accent})`;
-  }, [primaryColor, colorTheme]);
+    if (isValidColor(primaryColor)) return primaryColor!
+    const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default
+    return `var(--tw-color, ${theme.accent})`
+  }, [primaryColor, colorTheme])
 
   const handleSubmit = async () => {
-    if (!message.trim()) return;
-    setLoading(true);
+    if (!message.trim()) return
+    setLoading(true)
     try {
       await submitFeedback({
         name,
@@ -119,19 +122,19 @@ export const OrmaWidget: React.FC<Props> = ({
         message,
         type,
         projectId,
-      });
-      setStep("thankyou");
-      setName("");
-      setEmail("");
-      setRating(0);
-      setMessage("");
+      })
+      setStep("thankyou")
+      setName("")
+      setEmail("")
+      setRating(0)
+      setMessage("")
     } catch (err) {
-      console.error(err);
-      alert("Submission failed.");
+      console.error(err)
+      alert("Submission failed.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div
@@ -143,21 +146,27 @@ export const OrmaWidget: React.FC<Props> = ({
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-start"
+            className="text-white p-4 flex justify-between items-center min-h-[72px]"
             style={{ background: gradient }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {companyIconUrl && (
-                <img 
-                  src={companyIconUrl} 
-                  alt="Company Logo" 
-                  className="w-full h-10 object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+                <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
+                  <img
+                    src={companyIconUrl || "/placeholder.svg"}
+                    alt="Company Logo"
+                    className="max-w-full max-h-full object-contain"
+                    style={{
+                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
+                    }}
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                </div>
               )}
-              <h2 className="text-lg font-semibold">Acme Inc.</h2> {/* Replace with dynamic company name dynamically */}
+              <h2 className="text-lg font-semibold truncate">Acme Inc.</h2>{" "}
+              {/* Replace with dynamic company name dynamically */}
             </div>
             <button className="cursor-pointer" onClick={onClose} aria-label="Close">
               <span className="text-xl">✕</span>
@@ -171,8 +180,8 @@ export const OrmaWidget: React.FC<Props> = ({
                 <button
                   key={ft.value}
                   onClick={() => {
-                    setType(ft.value);
-                    setStep("form");
+                    setType(ft.value)
+                    setStep("form")
                   }}
                   className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition cursor-pointer"
                 >
@@ -183,7 +192,9 @@ export const OrmaWidget: React.FC<Props> = ({
             </div>
             <p className="text-xs text-center text-gray-400 mt-6">
               Powered by{" "}
-              <span style={{ color: accent }} className="font-semibold">〰️ ORMA</span>
+              <span style={{ color: accent }} className="font-semibold">
+                〰️ ORMA
+              </span>
             </p>
           </div>
         </>
@@ -191,21 +202,26 @@ export const OrmaWidget: React.FC<Props> = ({
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-start"
+            className="text-white p-4 flex justify-between items-center min-h-[72px]"
             style={{ background: gradient }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {companyIconUrl && (
-                <img 
-                  src={companyIconUrl} 
-                  alt="Company Logo" 
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+                <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
+                  <img
+                    src={companyIconUrl || "/placeholder.svg"}
+                    alt="Company Logo"
+                    className="max-w-full max-h-full object-contain"
+                    style={{
+                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
+                    }}
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                </div>
               )}
-              <h2 className="text-lg font-semibold">Acme Inc.</h2>
+              <h2 className="text-lg font-semibold truncate">Acme Inc.</h2>
             </div>
             <button className="cursor-pointer" onClick={onClose} aria-label="Close">
               <span className="text-xl">✕</span>
@@ -213,11 +229,7 @@ export const OrmaWidget: React.FC<Props> = ({
           </div>
           {/* Form screen with back button */}
           <div className="p-4 space-y-3">
-            <button
-              className="text-sm mb-2 cursor-pointer"
-              style={{ color: accent }}
-              onClick={() => setStep("type")}
-            >
+            <button className="text-sm mb-2 cursor-pointer" style={{ color: accent }} onClick={() => setStep("type")}>
               ← Back
             </button>
             <div className="flex gap-2">
@@ -255,9 +267,7 @@ export const OrmaWidget: React.FC<Props> = ({
               {[1, 2, 3, 4, 5].map((star) => (
                 <span
                   key={star}
-                  className={`cursor-pointer ${
-                    star <= rating ? "text-yellow-400" : ""
-                  }`}
+                  className={`cursor-pointer ${star <= rating ? "text-yellow-400" : ""}`}
                   onClick={() => setRating(star)}
                 >
                   ★
@@ -274,7 +284,9 @@ export const OrmaWidget: React.FC<Props> = ({
             </button>
             <p className="text-xs text-center text-gray-400 mt-2">
               Powered by{" "}
-              <span style={{ color: accent }} className="font-semibold">〰️ ORMA</span>
+              <span style={{ color: accent }} className="font-semibold">
+                〰️ ORMA
+              </span>
             </p>
           </div>
         </>
@@ -282,5 +294,5 @@ export const OrmaWidget: React.FC<Props> = ({
         <ThankYouScreen onClose={onClose} />
       )}
     </div>
-  );
-};
+  )
+}
