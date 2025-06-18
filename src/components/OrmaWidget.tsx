@@ -64,21 +64,98 @@ function isValidColor(str: string | undefined): boolean {
   return false
 }
 
-// Helper to create a gradient from any color
+// Helper to convert hex to RGB values
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: Number.parseInt(result[1], 16),
+        g: Number.parseInt(result[2], 16),
+        b: Number.parseInt(result[3], 16),
+      }
+    : null
+}
+
+// Helper to create beautiful noisy gradients from any color
 function makeGradient(color: string) {
-  // Use a transparent version of the color for the fade-out
-  // For hex, add CC for 80% opacity; for rgb/hsl, use with alpha if possible
-  if (color.startsWith("#") && (color.length === 7 || color.length === 4)) {
-    return `linear-gradient(90deg, ${color} 0%, ${color}CC 70%, #fff0 100%)`
+  // Handle hex colors with enhanced gradient
+  if (color.startsWith("#")) {
+    const rgb = hexToRgb(color)
+    if (rgb) {
+      const { r, g, b } = rgb
+
+      // Create variations of the base color
+      const lighter = `rgb(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)})`
+      const darker = `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`
+      const accent = `rgb(${Math.min(255, r + 15)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 35)})`
+
+      // Create a complex multi-stop gradient for noisy effect
+      return `
+        linear-gradient(135deg, 
+          ${color} 0%, 
+          ${lighter} 15%, 
+          ${color} 25%, 
+          ${accent} 40%, 
+          ${darker} 60%, 
+          ${color} 75%, 
+          ${lighter} 90%, 
+          ${darker} 100%
+        ),
+        radial-gradient(circle at 30% 20%, 
+          rgba(255,255,255,0.1) 0%, 
+          transparent 50%
+        ),
+        radial-gradient(circle at 70% 80%, 
+          rgba(0,0,0,0.1) 0%, 
+          transparent 50%
+        )
+      `
+        .replace(/\s+/g, " ")
+        .trim()
+    }
   }
+
+  // Handle rgb colors
   if (color.startsWith("rgb")) {
-    return `linear-gradient(90deg, ${color} 0%, ${color.replace("rgb", "rgba").replace(")", ",0.8)")} 70%, #fff0 100%)`
+    const match = color.match(/rgb$$(\d+),\s*(\d+),\s*(\d+)$$/)
+    if (match) {
+      const [, r, g, b] = match.map(Number)
+      const lighter = `rgb(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)})`
+      const darker = `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`
+      const accent = `rgb(${Math.min(255, r + 15)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 35)})`
+
+      return `
+        linear-gradient(135deg, 
+          ${color} 0%, 
+          ${lighter} 20%, 
+          ${accent} 40%, 
+          ${darker} 70%, 
+          ${color} 100%
+        ),
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%)
+      `
+        .replace(/\s+/g, " ")
+        .trim()
+    }
   }
+
+  // Handle hsl colors
   if (color.startsWith("hsl")) {
-    return `linear-gradient(90deg, ${color} 0%, ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 70%, #fff0 100%)`
+    return `
+      linear-gradient(135deg, 
+        ${color} 0%, 
+        ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 30%, 
+        ${color} 60%, 
+        ${color.replace("hsl", "hsla").replace(")", ",0.9)")} 100%
+      ),
+      radial-gradient(circle at 40% 60%, rgba(255,255,255,0.08) 0%, transparent 50%)
+    `
+      .replace(/\s+/g, " ")
+      .trim()
   }
-  // fallback
-  return `linear-gradient(90deg, ${color} 0%, #fff0 100%)`
+
+  // Fallback for any other color format
+  return `linear-gradient(135deg, ${color} 0%, rgba(0,0,0,0.1) 100%)`
 }
 
 export const OrmaWidget: React.FC<Props> = ({
@@ -147,18 +224,36 @@ export const OrmaWidget: React.FC<Props> = ({
           {/* Header */}
           <div
             className="text-white p-4 flex justify-between items-center min-h-[72px]"
-            style={{ background: gradient }}
+            style={{
+              background: gradient,
+              backgroundBlendMode: "multiply",
+              position: "relative",
+            }}
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                background: `
+                  repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.03) 2px,
+                    rgba(255,255,255,0.03) 4px
+                  )
+                `,
+              }}
+            ></div>
+            <div className="relative z-10 flex justify-between items-center flex-1 min-w-0">
               {companyIconUrl && (
                 <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
                   <img
                     src={companyIconUrl || "/placeholder.svg"}
                     alt="Company Logo"
                     className="max-w-full max-h-full object-contain"
-                    // style={{
-                    //   filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
-                    // }}
+                    style={{
+                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
+                    }}
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = "none"
                     }}
@@ -203,9 +298,27 @@ export const OrmaWidget: React.FC<Props> = ({
           {/* Header */}
           <div
             className="text-white p-4 flex justify-between items-center min-h-[72px]"
-            style={{ background: gradient }}
+            style={{
+              background: gradient,
+              backgroundBlendMode: "multiply",
+              position: "relative",
+            }}
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                background: `
+                  repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.03) 2px,
+                    rgba(255,255,255,0.03) 4px
+                  )
+                `,
+              }}
+            ></div>
+            <div className="relative z-10 flex justify-between items-center flex-1 min-w-0">
               {companyIconUrl && (
                 <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
                   <img
