@@ -6,9 +6,9 @@ import { submitFeedback } from "./../rpc/submitFeedback"
 import ThankYouScreen from "./ThankYouScreen"
 
 const FEEDBACK_TYPES = [
-  { label: "Report an issue", value: "Report and issue", emoji: "⚠️" },
+  { label: "Report an issue", value: "Report and issue", emoji: "🐛" },
   { label: "Suggest to us", value: "Suggest to us", emoji: "💡" },
-  { label: "Other", value: "Other", emoji: "⋯" },
+  { label: "Other", value: "Other", emoji: "💬" },
 ]
 
 // Predefined color themes
@@ -49,17 +49,15 @@ type Props = {
   position?: "bottom-right" | "bottom-left"
   projectId?: string
   companyIconUrl?: string
-  colorTheme?: string // still supported for legacy
-  primaryColor?: string // <-- NEW: hex/rgb/hsl
+  colorTheme?: string
+  primaryColor?: string
   onClose?: () => void
 }
 
 // Helper to check if a string is a valid hex or rgb/hsl color
 function isValidColor(str: string | undefined): boolean {
   if (!str) return false
-  // Hex
   if (/^#([A-Fa-f0-9]{3,4}){1,2}$/.test(str)) return true
-  // rgb/rgba/hsl/hsla
   if (/^(rgb|hsl)a?$$(\s*\d+\s*,?)+\s*[\d.]*$$$/.test(str)) return true
   return false
 }
@@ -78,18 +76,14 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 
 // Helper to create beautiful noisy gradients from any color
 function makeGradient(color: string) {
-  // Handle hex colors with enhanced gradient
   if (color.startsWith("#")) {
     const rgb = hexToRgb(color)
     if (rgb) {
       const { r, g, b } = rgb
-
-      // Create variations of the base color
       const lighter = `rgb(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)})`
       const darker = `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`
       const accent = `rgb(${Math.min(255, r + 15)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 35)})`
 
-      // Create a complex multi-stop gradient for noisy effect
       return `
         linear-gradient(135deg, 
           ${color} 0%, 
@@ -115,7 +109,6 @@ function makeGradient(color: string) {
     }
   }
 
-  // Handle rgb colors
   if (color.startsWith("rgb")) {
     const match = color.match(/rgb$$(\d+),\s*(\d+),\s*(\d+)$$/)
     if (match) {
@@ -139,22 +132,6 @@ function makeGradient(color: string) {
     }
   }
 
-  // Handle hsl colors
-  if (color.startsWith("hsl")) {
-    return `
-      linear-gradient(135deg, 
-        ${color} 0%, 
-        ${color.replace("hsl", "hsla").replace(")", ",0.8)")} 30%, 
-        ${color} 60%, 
-        ${color.replace("hsl", "hsla").replace(")", ",0.9)")} 100%
-      ),
-      radial-gradient(circle at 40% 60%, rgba(255,255,255,0.08) 0%, transparent 50%)
-    `
-      .replace(/\s+/g, " ")
-      .trim()
-  }
-
-  // Fallback for any other color format
   return `linear-gradient(135deg, ${color} 0%, rgba(0,0,0,0.1) 100%)`
 }
 
@@ -173,19 +150,18 @@ export const OrmaWidget: React.FC<Props> = ({
   const [rating, setRating] = useState(0)
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+  const [hoveredStar, setHoveredStar] = useState(0)
 
-  // Use user color if valid, else fallback to theme
   const gradient = useMemo(() => {
     if (isValidColor(primaryColor)) return makeGradient(primaryColor!)
-    // fallback to your old theme system if needed
     const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default
-    return `linear-gradient(to right, var(--tw-gradient-stops, ${theme.primary}))`
+    return `linear-gradient(135deg, var(--tw-gradient-stops, ${theme.primary}))`
   }, [primaryColor, colorTheme])
 
   const accent = useMemo(() => {
     if (isValidColor(primaryColor)) return primaryColor!
     const theme = COLOR_THEMES[colorTheme as keyof typeof COLOR_THEMES] || COLOR_THEMES.default
-    return `var(--tw-color, ${theme.accent})`
+    return theme.accent
   }, [primaryColor, colorTheme])
 
   const handleSubmit = async () => {
@@ -215,192 +191,307 @@ export const OrmaWidget: React.FC<Props> = ({
 
   return (
     <div
-      className={`fixed z-50 bg-white rounded-2xl shadow-2xl overflow-hidden w-[360px] ${
-        position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4"
+      className={`fixed z-50 bg-white rounded-3xl shadow-2xl overflow-hidden w-[380px] backdrop-blur-sm border border-white/20 transition-all duration-300 hover:shadow-3xl ${
+        position === "bottom-left" ? "bottom-6 left-6" : "bottom-6 right-6"
       }`}
+      style={{
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+      }}
     >
       {step === "type" ? (
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-center min-h-[72px]"
+            className="text-white p-6 relative overflow-hidden"
             style={{
               background: gradient,
-              backgroundBlendMode: "multiply",
-              position: "relative",
+              minHeight: "80px",
             }}
           >
+            {/* Noise texture overlay */}
             <div
-              className="absolute inset-0 opacity-20"
+              className="absolute inset-0 opacity-10"
               style={{
                 background: `
                   repeating-linear-gradient(
                     45deg,
                     transparent,
                     transparent 2px,
-                    rgba(255,255,255,0.03) 2px,
-                    rgba(255,255,255,0.03) 4px
+                    rgba(255,255,255,0.05) 2px,
+                    rgba(255,255,255,0.05) 4px
                   )
                 `,
               }}
-            ></div>
-            <div className="relative z-10 flex justify-between items-center flex-1 min-w-0">
-              {companyIconUrl && (
-                <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
-                  <img
-                    src={companyIconUrl || "/placeholder.svg"}
-                    alt="Company Logo"
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
-                    }}
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = "none"
-                    }}
-                  />
+            />
+
+            {/* Content */}
+            <div className="relative z-10 flex justify-between items-center">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                {companyIconUrl && (
+                  <div className="flex-shrink-0 max-w-[120px] h-12 flex items-center">
+                    <img
+                      src={companyIconUrl || "/placeholder.svg"}
+                      alt="Company Logo"
+                      className="max-w-full max-h-full object-contain drop-shadow-sm"
+                      style={{
+                        filter: "brightness(0) invert(1)",
+                      }}
+                      onError={(e) => {
+                        ;(e.target as HTMLImageElement).style.display = "none"
+                      }}
+                    />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-bold truncate drop-shadow-sm">Acme Inc.</h2>
+                  <p className="text-white/80 text-sm font-medium">We'd love your feedback</p>
                 </div>
-              )}
-              <h2 className="text-lg font-semibold truncate">Acme Inc.</h2>{" "}
-              {/* Replace with dynamic company name dynamically */}
+              </div>
+
+              {/* Fixed Close Button */}
+              <button
+                onClick={onClose}
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105 active:scale-95"
+                aria-label="Close feedback widget"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <button className="cursor-pointer" onClick={onClose} aria-label="Close">
-              <span className="text-xl">✕</span>
-            </button>
           </div>
-          {/* Feedback type selection screen */}
-          <div className="p-4">
-            <h3 className="text-lg font-medium mb-4">Choose feedback option</h3>
+
+          {/* Content */}
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-2 text-gray-900">Choose feedback type</h3>
+            <p className="text-gray-600 text-sm mb-6">Help us improve by sharing your thoughts</p>
+
             <div className="space-y-3">
-              {FEEDBACK_TYPES.map((ft) => (
+              {FEEDBACK_TYPES.map((ft, index) => (
                 <button
                   key={ft.value}
                   onClick={() => {
                     setType(ft.value)
                     setStep("form")
                   }}
-                  className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+                  className="w-full group flex items-center gap-4 p-4 bg-gray-50/80 hover:bg-gray-100/80 rounded-2xl transition-all duration-200 cursor-pointer border border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                  }}
                 >
-                  <span className="text-xl">{ft.emoji}</span>
-                  <span className="text-sm font-medium">{ft.label}</span>
+                  <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-sm group-hover:shadow-md transition-all duration-200">
+                    <span className="text-2xl">{ft.emoji}</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className="font-semibold text-gray-900 block">{ft.label}</span>
+                    <span className="text-sm text-gray-500">
+                      {ft.value === "Report and issue" && "Found a bug or issue?"}
+                      {ft.value === "Suggest to us" && "Have an idea to share?"}
+                      {ft.value === "Other" && "Something else on your mind?"}
+                    </span>
+                  </div>
+                  <svg
+                    className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-center text-gray-400 mt-6">
-              Powered by{" "}
-              <span style={{ color: accent }} className="font-semibold">
-                〰️ ORMA
-              </span>
-            </p>
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <p className="text-xs text-center text-gray-400 flex items-center justify-center gap-2">
+                <span>Powered by</span>
+                <span style={{ color: accent }} className="font-bold text-sm">
+                  〰️ ORMA
+                </span>
+              </p>
+            </div>
           </div>
         </>
       ) : step === "form" ? (
         <>
           {/* Header */}
           <div
-            className="text-white p-4 flex justify-between items-center min-h-[72px]"
+            className="text-white p-6 relative overflow-hidden"
             style={{
               background: gradient,
-              backgroundBlendMode: "multiply",
-              position: "relative",
+              minHeight: "80px",
             }}
           >
             <div
-              className="absolute inset-0 opacity-20"
+              className="absolute inset-0 opacity-10"
               style={{
                 background: `
                   repeating-linear-gradient(
                     45deg,
                     transparent,
                     transparent 2px,
-                    rgba(255,255,255,0.03) 2px,
-                    rgba(255,255,255,0.03) 4px
+                    rgba(255,255,255,0.05) 2px,
+                    rgba(255,255,255,0.05) 4px
                   )
                 `,
               }}
-            ></div>
-            <div className="relative z-10 flex justify-between items-center flex-1 min-w-0">
-              {companyIconUrl && (
-                <div className="flex-shrink-0 max-w-[120px] h-10 flex items-center">
-                  <img
-                    src={companyIconUrl || "/placeholder.svg"}
-                    alt="Company Logo"
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      filter: "brightness(0) invert(1)", // Makes any logo white for dark backgrounds
-                    }}
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = "none"
-                    }}
-                  />
+            />
+
+            <div className="relative z-10 flex justify-between items-center">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                {companyIconUrl && (
+                  <div className="flex-shrink-0 max-w-[120px] h-12 flex items-center">
+                    <img
+                      src={companyIconUrl || "/placeholder.svg"}
+                      alt="Company Logo"
+                      className="max-w-full max-h-full object-contain drop-shadow-sm"
+                      style={{
+                        filter: "brightness(0) invert(1)",
+                      }}
+                      onError={(e) => {
+                        ;(e.target as HTMLImageElement).style.display = "none"
+                      }}
+                    />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-bold truncate drop-shadow-sm">Acme Inc.</h2>
+                  <p className="text-white/80 text-sm font-medium">Share your feedback</p>
                 </div>
-              )}
-              <h2 className="text-lg font-semibold truncate">Acme Inc.</h2>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-105 active:scale-95"
+                aria-label="Close feedback widget"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <button className="cursor-pointer" onClick={onClose} aria-label="Close">
-              <span className="text-xl">✕</span>
-            </button>
           </div>
-          {/* Form screen with back button */}
-          <div className="p-4 space-y-3">
-            <button className="text-sm mb-2 cursor-pointer" style={{ color: accent }} onClick={() => setStep("type")}>
-              ← Back
+
+          {/* Form */}
+          <div className="p-6 space-y-5">
+            <button
+              className="flex items-center gap-2 text-sm font-medium transition-colors duration-200 hover:opacity-80"
+              style={{ color: accent }}
+              onClick={() => setStep("type")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Back to options
             </button>
-            <div className="flex gap-2">
-              <div className="flex flex-col w-1/2">
-                <label className="text-sm mb-1">Name</label>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Name</label>
                 <input
-                  className="border rounded-md p-2 text-sm"
+                  className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none bg-gray-50/50 hover:bg-white"
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
-              <div className="flex flex-col w-1/2">
-                <label className="text-sm mb-1">Email</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Email</label>
                 <input
                   type="email"
-                  className="border rounded-md p-2 text-sm"
-                  placeholder="johndoe@example.com"
+                  className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none bg-gray-50/50 hover:bg-white"
+                  placeholder="john@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
-            <div>
-              <label className="text-sm mb-1 block">Feedback</label>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Your feedback</label>
               <textarea
-                className="w-full border rounded-md p-2 text-sm"
-                rows={3}
-                placeholder="Why did you select your choice and what do you think about our product/services?"
+                className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none bg-gray-50/50 hover:bg-white resize-none"
+                rows={4}
+                placeholder="Tell us what's on your mind. We value every piece of feedback!"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
             </div>
-            <div className="flex justify-center gap-1 text-xl text-gray-400">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`cursor-pointer ${star <= rating ? "text-yellow-400" : ""}`}
-                  onClick={() => setRating(star)}
-                >
-                  ★
-                </span>
-              ))}
+
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700 block">Rate your experience</label>
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`text-3xl transition-all duration-200 hover:scale-110 active:scale-95 ${
+                      star <= (hoveredStar || rating) ? "text-yellow-400" : "text-gray-300"
+                    }`}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoveredStar(star)}
+                    onMouseLeave={() => setHoveredStar(0)}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-center text-sm text-gray-600">
+                  {rating === 1 && "We're sorry to hear that 😔"}
+                  {rating === 2 && "We'll work on improving 🔧"}
+                  {rating === 3 && "Thanks for the feedback 👍"}
+                  {rating === 4 && "Great to hear! 😊"}
+                  {rating === 5 && "Awesome! We're thrilled! 🎉"}
+                </p>
+              )}
             </div>
+
             <button
               onClick={handleSubmit}
-              disabled={loading}
-              className="w-full cursor-pointer text-white p-2 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
-              style={{ background: accent }}
+              disabled={loading || !message.trim()}
+              className="w-full text-white p-4 rounded-xl font-bold text-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{
+                background: loading ? "#9CA3AF" : accent,
+                boxShadow: loading ? "none" : `0 4px 14px 0 ${accent}40`,
+              }}
             >
-              {loading ? "Submitting..." : "Submit"}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Submitting...
+                </div>
+              ) : (
+                "Submit Feedback"
+              )}
             </button>
-            <p className="text-xs text-center text-gray-400 mt-2">
-              Powered by{" "}
-              <span style={{ color: accent }} className="font-semibold">
-                〰️ ORMA
-              </span>
-            </p>
+
+            <div className="pt-4 border-t border-gray-100">
+              <p className="text-xs text-center text-gray-400 flex items-center justify-center gap-2">
+                <span>Powered by</span>
+                <span style={{ color: accent }} className="font-bold text-sm">
+                  〰️ ORMA
+                </span>
+              </p>
+            </div>
           </div>
         </>
       ) : (
