@@ -2,7 +2,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { OrmaWidget } from './components/OrmaWidget';
-import './styles.css';
 
 interface WidgetConfig {
   position?: 'bottom-right' | 'bottom-left' | 'modal' | 'inline';
@@ -44,35 +43,8 @@ class OrmaWidgetWrapper {
       }
     }
     
-    // Method 2: Check for data attributes on script tags
     if (!scriptUrl) {
-      for (let i = 0; i < scripts.length; i++) {
-        const script = scripts[i];
-        if (script.hasAttribute('data-orma-config')) {
-          try {
-            return JSON.parse(script.getAttribute('data-orma-config') || '{}');
-          } catch (e) {
-            console.warn('Failed to parse data-orma-config:', e);
-          }
-        }
-      }
-    }
-    
-    // Method 3: Fallback to window location if script URL not found
-    if (!scriptUrl) {
-      console.warn('OrmaWidget: Could not detect script source, using fallback parsing');
-      // Try to extract from any script that has orma-related attributes
-      for (let i = 0; i < scripts.length; i++) {
-        const script = scripts[i];
-        if (script.src && (script.src.includes('orma') || script.hasAttribute('data-orma'))) {
-          scriptUrl = script.src;
-          break;
-        }
-      }
-    }
-
-    if (!scriptUrl) {
-      console.warn('OrmaWidget: No script URL found, using default config');
+      console.warn('OrmaWidget: Could not detect script source, using default config');
       return { position: 'bottom-right' };
     }
 
@@ -95,7 +67,7 @@ class OrmaWidgetWrapper {
         showDelay: parseInt(getParam('show-delay') || '0', 10)
       };
 
-      console.log('Parsed config from URL:', scriptUrl, config);
+      console.log('Parsed config from URL:', config);
       return config;
     } catch (e) {
       console.error('Failed to parse script URL:', scriptUrl, e);
@@ -104,11 +76,9 @@ class OrmaWidgetWrapper {
   }
 
   private init(): void {
-    // Wait for DOM to be ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.setup());
     } else {
-      // Small delay to ensure everything is loaded
       setTimeout(() => this.setup(), 100);
     }
   }
@@ -137,26 +107,20 @@ class OrmaWidgetWrapper {
     this.widgetContainer = document.createElement('div');
     this.widgetContainer.id = 'orma-widget-container';
     
-    // Set base styles
-    const baseStyles = `
-      z-index: 2147483647;
-      pointer-events: none;
-    `;
-
+    // MINIMAL container - let React component handle all positioning and styling
     if (this.config.position === 'inline') {
-      this.widgetContainer.style.cssText = `
-        ${baseStyles}
-        position: relative;
-        width: 100%;
-      `;
+      // For inline, we'll handle this separately
+      return;
     } else {
+      // For fixed positions, create a minimal container that doesn't interfere
       this.widgetContainer.style.cssText = `
-        ${baseStyles}
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2147483647;
       `;
       document.body.appendChild(this.widgetContainer);
     }
@@ -231,13 +195,8 @@ class OrmaWidgetWrapper {
     }
 
     inlineContainers.forEach((container) => {
+      // Create a simple wrapper that doesn't interfere with styles
       const inlineContainer = document.createElement('div');
-      inlineContainer.style.cssText = `
-        position: relative;
-        width: 100%;
-        pointer-events: auto;
-      `;
-      
       container.appendChild(inlineContainer);
       
       const root = createRoot(inlineContainer);
@@ -261,13 +220,14 @@ class OrmaWidgetWrapper {
 
     console.log('Rendering widget...');
     
-    // Enable pointer events when widget is shown
+    // Only enable pointer events on the container when showing
     this.widgetContainer.style.pointerEvents = 'auto';
 
     if (!this.root) {
       this.root = createRoot(this.widgetContainer);
     }
 
+    // Render the widget - let it handle its own positioning completely
     this.root.render(
       React.createElement(OrmaWidget, {
         position: this.config.position,
@@ -309,7 +269,7 @@ class OrmaWidgetWrapper {
     if (this.widgetContainer) {
       this.widgetContainer.style.pointerEvents = 'none';
       
-      // Clean up
+      // Clean up the React component
       if (this.root) {
         this.root.unmount();
         this.root = null;
@@ -394,7 +354,6 @@ function initializeWidget() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeWidget);
 } else {
-  // Add a small delay to ensure the script has fully loaded
   setTimeout(initializeWidget, 50);
 }
 
