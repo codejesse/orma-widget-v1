@@ -50,12 +50,6 @@ const toggleWidget = (customPosition?: "bottom-right" | "bottom-left") => {
 
   // Create a new widget
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.inset = "0";
-  container.style.zIndex = "2147483647"; // very high z-index for modal
-  container.style.overflowY = "auto"; // allow scrolling
-  container.style.pointerEvents = "none"; // let widget handle pointer events
-
   document.body.appendChild(container);
   const root = ReactDOM.createRoot(container);
 
@@ -82,7 +76,7 @@ const toggleWidget = (customPosition?: "bottom-right" | "bottom-left") => {
     position: finalPosition,
     companyIconUrl: widgetConfig.companyIconUrl,
     colorTheme: widgetConfig.colorTheme,
-    primaryColor: widgetConfig.primaryColor,
+    primaryColor: widgetConfig.primaryColor, // <-- NEW
     onClose: closeWidget
   }));
 };
