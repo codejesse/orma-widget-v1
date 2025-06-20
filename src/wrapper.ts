@@ -2,6 +2,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { OrmaWidget } from './components/OrmaWidget';
+import './styles.css';
 
 interface WidgetConfig {
   position?: 'bottom-right' | 'bottom-left' | 'modal' | 'inline';
