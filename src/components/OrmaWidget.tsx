@@ -207,39 +207,35 @@ export const OrmaWidget: React.FC<Props> = ({
       case "modal":
         return {
           containerClass: "fixed inset-0 z-50 flex items-center justify-center p-4",
-          widgetClass: "w-full max-w-md max-h-[90vh]",
+          widgetClass: "w-full max-w-md max-h-[90vh] overflow-y-auto",
           showBackdrop: true,
           backdropClass: "fixed inset-0 bg-black/20 backdrop-blur-sm z-40",
         }
-      
       case "bottom-right":
         return {
           containerClass: "fixed bottom-6 right-6 z-50",
-          widgetClass: "w-[380px] max-h-[600px]",
+          widgetClass: "w-[380px] max-h-[90vh] overflow-y-auto",
           showBackdrop: false,
           backdropClass: "",
         }
-      
       case "bottom-left":
         return {
           containerClass: "fixed bottom-6 left-6 z-50",
-          widgetClass: "w-[380px] max-h-[600px]",
+          widgetClass: "w-[380px] max-h-[90vh] overflow-y-auto",
           showBackdrop: false,
           backdropClass: "",
         }
-      
       case "inline":
         return {
           containerClass: "relative w-full",
-          widgetClass: "w-full max-w-md mx-auto",
+          widgetClass: "w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto",
           showBackdrop: false,
           backdropClass: "",
         }
-      
       default:
         return {
           containerClass: "fixed bottom-6 right-6 z-50",
-          widgetClass: "w-[380px] max-h-[600px]",
+          widgetClass: "w-[380px] max-h-[90vh] overflow-y-auto",
           showBackdrop: false,
           backdropClass: "",
         }
@@ -273,7 +269,7 @@ export const OrmaWidget: React.FC<Props> = ({
 
   const WidgetContent = () => (
     <div
-      className={`bg-white rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm border border-white/20 transition-all duration-300 hover:shadow-3xl ${finalStyles.widgetClass}`}
+      className={`bg-white rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm border border-white/20 transition-all duration-300 hover:shadow-3xl ${finalStyles.widgetClass} max-h-[90vh] overflow-y-auto`}
       style={{
         boxShadow: position === "inline" 
           ? "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)"
