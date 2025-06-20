@@ -19,40 +19,87 @@ class OrmaWidgetWrapper {
   private widgetContainer: HTMLDivElement | null = null;
   private root: any = null;
   private isVisible: boolean = false;
-  private triggerElements: NodeListOf<Element> | null = null;
+  private triggerElements: Element[] = [];
+  private clickHandler: (e: Event) => void;
 
   constructor() {
     this.config = this.parseUrlParams();
+    this.clickHandler = this.handleTriggerClick.bind(this);
+    console.log('OrmaWidget initialized with config:', this.config);
     this.init();
   }
 
   private parseUrlParams(): WidgetConfig {
-    const currentScript = document.currentScript as HTMLScriptElement;
-    if (!currentScript?.src) {
-      console.warn('OrmaWidget: Could not detect script source for URL parsing');
-      return {};
+    // Try multiple methods to get the script URL
+    let scriptUrl: string | null = null;
+    
+    // Method 1: Find script by src pattern
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+      const src = scripts[i].src;
+      if (src && src.includes('orma-widget')) {
+        scriptUrl = src;
+        break;
+      }
+    }
+    
+    // Method 2: Check for data attributes on script tags
+    if (!scriptUrl) {
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        if (script.hasAttribute('data-orma-config')) {
+          try {
+            return JSON.parse(script.getAttribute('data-orma-config') || '{}');
+          } catch (e) {
+            console.warn('Failed to parse data-orma-config:', e);
+          }
+        }
+      }
+    }
+    
+    // Method 3: Fallback to window location if script URL not found
+    if (!scriptUrl) {
+      console.warn('OrmaWidget: Could not detect script source, using fallback parsing');
+      // Try to extract from any script that has orma-related attributes
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        if (script.src && (script.src.includes('orma') || script.hasAttribute('data-orma'))) {
+          scriptUrl = script.src;
+          break;
+        }
+      }
     }
 
-    const url = new URL(currentScript.src);
-    const params = new URLSearchParams(url.search);
-    
-    // Also check the hash/fragment for additional params (common pattern)
-    const hashParams = url.hash ? new URLSearchParams(url.hash.substring(1)) : null;
-    
-    const getParam = (key: string): string | null => {
-      return params.get(key) || hashParams?.get(key) || null;
-    };
+    if (!scriptUrl) {
+      console.warn('OrmaWidget: No script URL found, using default config');
+      return { position: 'bottom-right' };
+    }
 
-    return {
-      position: (getParam('position') as WidgetConfig['position']) || 'bottom-right',
-      projectId: getParam('pid') || getParam('project-id') || undefined,
-      companyIconUrl: getParam('company-icon-url') || getParam('icon') || undefined,
-      colorTheme: getParam('color-theme') || getParam('theme') || 'default',
-      primaryColor: getParam('primary-color') || getParam('color') || undefined,
-      triggerSelector: getParam('trigger') || '[data-feedback-widget]',
-      autoShow: getParam('auto-show') === 'true',
-      showDelay: parseInt(getParam('show-delay') || '0', 10)
-    };
+    try {
+      const url = new URL(scriptUrl);
+      const params = new URLSearchParams(url.search);
+      
+      const getParam = (key: string): string | null => {
+        return params.get(key) || null;
+      };
+
+      const config = {
+        position: (getParam('position') as WidgetConfig['position']) || 'bottom-right',
+        projectId: getParam('pid') || getParam('project-id') || undefined,
+        companyIconUrl: getParam('company-icon-url') || getParam('icon') || undefined,
+        colorTheme: getParam('color-theme') || getParam('theme') || 'default',
+        primaryColor: getParam('primary-color') || getParam('color') || undefined,
+        triggerSelector: getParam('trigger') || '[data-feedback-widget]',
+        autoShow: getParam('auto-show') === 'true',
+        showDelay: parseInt(getParam('show-delay') || '0', 10)
+      };
+
+      console.log('Parsed config from URL:', scriptUrl, config);
+      return config;
+    } catch (e) {
+      console.error('Failed to parse script URL:', scriptUrl, e);
+      return { position: 'bottom-right' };
+    }
   }
 
   private init(): void {
@@ -60,11 +107,14 @@ class OrmaWidgetWrapper {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.setup());
     } else {
-      this.setup();
+      // Small delay to ensure everything is loaded
+      setTimeout(() => this.setup(), 100);
     }
   }
 
   private setup(): void {
+    console.log('Setting up OrmaWidget...');
+    
     this.createWidgetContainer();
     this.setupTriggers();
     
@@ -74,38 +124,62 @@ class OrmaWidgetWrapper {
       setTimeout(() => this.show(), delay);
     }
 
-    // Handle inline positioning - auto-inject into specified containers
+    // Handle inline positioning
     if (this.config.position === 'inline') {
       this.handleInlinePositioning();
     }
   }
 
   private createWidgetContainer(): void {
+    if (this.widgetContainer) return;
+
     this.widgetContainer = document.createElement('div');
     this.widgetContainer.id = 'orma-widget-container';
-    this.widgetContainer.style.cssText = `
-      position: ${this.config.position === 'inline' ? 'relative' : 'fixed'};
+    
+    // Set base styles
+    const baseStyles = `
       z-index: 2147483647;
       pointer-events: none;
     `;
 
-    // For inline positioning, we'll append to target containers later
-    if (this.config.position !== 'inline') {
+    if (this.config.position === 'inline') {
+      this.widgetContainer.style.cssText = `
+        ${baseStyles}
+        position: relative;
+        width: 100%;
+      `;
+    } else {
+      this.widgetContainer.style.cssText = `
+        ${baseStyles}
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      `;
       document.body.appendChild(this.widgetContainer);
     }
+
+    console.log('Widget container created for position:', this.config.position);
   }
 
   private setupTriggers(): void {
-    // Set up click triggers
-    const setupClickTriggers = () => {
-      this.triggerElements = document.querySelectorAll(this.config.triggerSelector || '[data-feedback-widget]');
+    const selector = this.config.triggerSelector || '[data-feedback-widget]';
+    console.log('Setting up triggers for selector:', selector);
+
+    const updateTriggers = () => {
+      // Remove old event listeners
+      this.triggerElements.forEach(element => {
+        element.removeEventListener('click', this.clickHandler);
+      });
+
+      // Find new triggers
+      this.triggerElements = Array.from(document.querySelectorAll(selector));
+      console.log('Found trigger elements:', this.triggerElements.length);
       
+      // Add event listeners
       this.triggerElements.forEach((element) => {
-        element.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.toggle();
-        });
+        element.addEventListener('click', this.clickHandler);
         
         // Add cursor pointer for better UX
         if (element instanceof HTMLElement) {
@@ -115,11 +189,11 @@ class OrmaWidgetWrapper {
     };
 
     // Initial setup
-    setupClickTriggers();
+    updateTriggers();
 
-    // Re-scan for new triggers periodically (for dynamic content)
+    // Watch for DOM changes
     const observer = new MutationObserver(() => {
-      setupClickTriggers();
+      updateTriggers();
     });
 
     observer.observe(document.body, {
@@ -127,7 +201,7 @@ class OrmaWidgetWrapper {
       subtree: true
     });
 
-    // Set up keyboard accessibility
+    // ESC key handler
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.isVisible) {
         this.hide();
@@ -135,8 +209,19 @@ class OrmaWidgetWrapper {
     });
   }
 
+  private handleTriggerClick(e: Event): void {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Trigger clicked, current visibility:', this.isVisible);
+    
+    if (this.isVisible) {
+      this.hide();
+    } else {
+      this.show();
+    }
+  }
+
   private handleInlinePositioning(): void {
-    // Look for containers with data-orma-widget attribute
     const inlineContainers = document.querySelectorAll('[data-orma-widget]');
     
     if (inlineContainers.length === 0) {
@@ -145,14 +230,15 @@ class OrmaWidgetWrapper {
     }
 
     inlineContainers.forEach((container) => {
-      const inlineContainer = this.widgetContainer!.cloneNode(true) as HTMLDivElement;
-      inlineContainer.id = `orma-widget-inline-${Math.random().toString(36).substr(2, 9)}`;
-      inlineContainer.style.position = 'relative';
-      inlineContainer.style.pointerEvents = 'auto';
+      const inlineContainer = document.createElement('div');
+      inlineContainer.style.cssText = `
+        position: relative;
+        width: 100%;
+        pointer-events: auto;
+      `;
       
       container.appendChild(inlineContainer);
       
-      // Render widget directly for inline mode
       const root = createRoot(inlineContainer);
       root.render(
         React.createElement(OrmaWidget, {
@@ -162,7 +248,6 @@ class OrmaWidgetWrapper {
           colorTheme: this.config.colorTheme,
           primaryColor: this.config.primaryColor,
           onClose: () => {
-            // For inline widgets, we might want to hide or remove them
             inlineContainer.style.display = 'none';
           }
         })
@@ -173,6 +258,8 @@ class OrmaWidgetWrapper {
   private renderWidget(): void {
     if (!this.widgetContainer || this.config.position === 'inline') return;
 
+    console.log('Rendering widget...');
+    
     // Enable pointer events when widget is shown
     this.widgetContainer.style.pointerEvents = 'auto';
 
@@ -187,78 +274,49 @@ class OrmaWidgetWrapper {
         companyIconUrl: this.config.companyIconUrl,
         colorTheme: this.config.colorTheme,
         primaryColor: this.config.primaryColor,
-        onClose: () => this.hide()
+        onClose: () => {
+          console.log('Widget close requested');
+          this.hide();
+        }
       })
     );
   }
 
   private show(): void {
-    if (this.isVisible || this.config.position === 'inline') return;
+    if (this.isVisible || this.config.position === 'inline') {
+      console.log('Widget already visible or inline, skipping show');
+      return;
+    }
     
+    console.log('Showing widget');
     this.isVisible = true;
     this.renderWidget();
     
-    // Add show animation
-    if (this.widgetContainer) {
-      this.widgetContainer.style.opacity = '0';
-      this.widgetContainer.style.transform = this.getInitialTransform();
-      this.widgetContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      // Trigger animation
-      requestAnimationFrame(() => {
-        if (this.widgetContainer) {
-          this.widgetContainer.style.opacity = '1';
-          this.widgetContainer.style.transform = 'none';
-        }
-      });
-    }
-
     // Dispatch custom event
     window.dispatchEvent(new CustomEvent('orma-widget-shown'));
   }
 
   private hide(): void {
-    if (!this.isVisible || this.config.position === 'inline') return;
+    if (!this.isVisible || this.config.position === 'inline') {
+      console.log('Widget not visible or inline, skipping hide');
+      return;
+    }
     
+    console.log('Hiding widget');
     this.isVisible = false;
     
     if (this.widgetContainer) {
-      this.widgetContainer.style.opacity = '0';
-      this.widgetContainer.style.transform = this.getInitialTransform();
       this.widgetContainer.style.pointerEvents = 'none';
       
-      // Clean up after animation
-      setTimeout(() => {
-        if (this.root) {
-          this.root.unmount();
-          this.root = null;
-        }
-      }, 300);
+      // Clean up
+      if (this.root) {
+        this.root.unmount();
+        this.root = null;
+      }
     }
 
     // Dispatch custom event
     window.dispatchEvent(new CustomEvent('orma-widget-hidden'));
-  }
-
-  private toggle(): void {
-    if (this.isVisible) {
-      this.hide();
-    } else {
-      this.show();
-    }
-  }
-
-  private getInitialTransform(): string {
-    switch (this.config.position) {
-      case 'bottom-right':
-        return 'translateX(100px) translateY(100px) scale(0.8)';
-      case 'bottom-left':
-        return 'translateX(-100px) translateY(100px) scale(0.8)';
-      case 'modal':
-        return 'scale(0.9)';
-      default:
-        return 'scale(0.8)';
-    }
   }
 
   // Public API methods
@@ -271,7 +329,11 @@ class OrmaWidgetWrapper {
   }
 
   public toggleWidget(): void {
-    this.toggle();
+    if (this.isVisible) {
+      this.hide();
+    } else {
+      this.show();
+    }
   }
 
   public updateConfig(newConfig: Partial<WidgetConfig>): void {
@@ -286,8 +348,8 @@ class OrmaWidgetWrapper {
     if (this.widgetContainer?.parentNode) {
       this.widgetContainer.parentNode.removeChild(this.widgetContainer);
     }
-    this.triggerElements?.forEach((element) => {
-      element.removeEventListener('click', this.toggle);
+    this.triggerElements.forEach((element) => {
+      element.removeEventListener('click', this.clickHandler);
     });
   }
 }
@@ -308,24 +370,31 @@ declare global {
 // Initialize the widget
 let widgetInstance: OrmaWidgetWrapper;
 
-// Wait for script to load and initialize
+function initializeWidget() {
+  try {
+    widgetInstance = new OrmaWidgetWrapper();
+    
+    // Expose global API
+    window.OrmaWidget = {
+      show: () => widgetInstance.showWidget(),
+      hide: () => widgetInstance.hideWidget(),
+      toggle: () => widgetInstance.toggleWidget(),
+      updateConfig: (config) => widgetInstance.updateConfig(config),
+      destroy: () => widgetInstance.destroy()
+    };
+
+    console.log('OrmaWidget initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize OrmaWidget:', error);
+  }
+}
+
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeWidget);
 } else {
-  initializeWidget();
-}
-
-function initializeWidget() {
-  widgetInstance = new OrmaWidgetWrapper();
-  
-  // Expose global API
-  window.OrmaWidget = {
-    show: () => widgetInstance.showWidget(),
-    hide: () => widgetInstance.hideWidget(),
-    toggle: () => widgetInstance.toggleWidget(),
-    updateConfig: (config) => widgetInstance.updateConfig(config),
-    destroy: () => widgetInstance.destroy()
-  };
+  // Add a small delay to ensure the script has fully loaded
+  setTimeout(initializeWidget, 50);
 }
 
 // Handle hot module replacement in development
